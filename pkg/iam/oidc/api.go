@@ -50,7 +50,7 @@ func (u *UnsupportedOIDCError) Error() string {
 
 // NewOpenIDConnectManager constructs a new IAM OIDC manager instance.
 // It returns an error if the issuer URL is invalid
-func NewOpenIDConnectManager(iamapi awsapi.IAM, accountID, issuer, partition string, tags map[string]string) (*OpenIDConnectManager, error) {
+func NewOpenIDConnectManager(iamapi awsapi.IAM, accountID, issuer, partition string, tags map[string]string, oidcThumbprint string) (*OpenIDConnectManager, error) {
 	issuerURL, err := url.Parse(issuer)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing OIDC issuer URL")
@@ -72,6 +72,11 @@ func NewOpenIDConnectManager(iamapi awsapi.IAM, accountID, issuer, partition str
 		audience:  defaultAudience,
 		issuerURL: issuerURL,
 	}
+
+	if oidcThumbprint != "" {
+		m.issuerCAThumbprint = oidcThumbprint
+	}
+
 	return m, nil
 }
 
@@ -145,6 +150,10 @@ func (m *OpenIDConnectManager) DeleteProvider(ctx context.Context) error {
 // getIssuerCAThumbprint obtains thumbprint of root CA by connecting to the
 // OIDC issuer and parsing certificates
 func (m *OpenIDConnectManager) getIssuerCAThumbprint() error {
+	if m.issuerCAThumbprint != "" {
+		return nil
+	}
+
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{

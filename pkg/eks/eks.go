@@ -177,7 +177,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(ctx context.Context, spec *api
 	}
 
 	return iamoidc.NewOpenIDConnectManager(c.AWSProvider.IAM(), parsedARN.AccountID,
-		*c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition, sharedTags(c.Status.ClusterInfo.Cluster))
+		*c.Status.ClusterInfo.Cluster.Identity.Oidc.Issuer, parsedARN.Partition, sharedTags(c.Status.ClusterInfo.Cluster), *spec.IAM.OIDCThumbprint)
 }
 
 func sharedTags(cluster *ekstypes.Cluster) map[string]string {
